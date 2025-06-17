@@ -45,7 +45,7 @@ app.get('/', (req, res) => {
  * @desc    Creates a new business unit (Group, Company, or Branch).
  * @access  Private (to be secured later)
  */
-app.post('/business-units', async (req, res) => {
+app.post('/api/business-units', async (req, res) => {
   // Extract data from the incoming request's body
   // Set parent_id to null by default if it's not provided
   const { name, type, parent_id = null } = req.body;
@@ -84,7 +84,7 @@ app.post('/business-units', async (req, res) => {
  * @desc    Retrieves a list of all business units.
  * @access  Private (to be secured later)
  */
-app.get('/business-units', async (req, res) => {
+app.get('/api/business-units', async (req, res) => {
   try {
     // A simple query to select all records, ordered by their ID for consistency
     const query = 'SELECT * FROM business_units ORDER BY id ASC;';
