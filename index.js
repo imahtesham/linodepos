@@ -9,15 +9,6 @@ const { Pool } = require('pg'); // PostgreSQL client
 
 // --- Database Connection Setup ---
 
-// ===================================================================
-// TEMPORARY DEBUGGING - This will show us the exact variables
-console.log("--- Attempting to connect with the following credentials ---");
-console.log(`DB_HOST: '${process.env.DB_HOST}'`);
-console.log(`DB_USER: '${process.env.DB_USER}'`);
-console.log(`DB_PASSWORD LENGTH: ${process.env.DB_PASSWORD ? process.env.DB_PASSWORD.length : 'UNDEFINED'}`);
-console.log("---------------------------------------------------------");
-// ===================================================================
-
 // Create a new Pool instance to manage connections to the database
 // The configuration is read from the .env file for security
 const pool = new Pool({
