@@ -9,6 +9,15 @@ const { Pool } = require('pg'); // PostgreSQL client
 
 // --- Database Connection Setup ---
 
+// ===================================================================
+// TEMPORARY DEBUGGING - This will show us the exact variables
+console.log("--- Attempting to connect with the following credentials ---");
+console.log(`DB_HOST: '${process.env.DB_HOST}'`);
+console.log(`DB_USER: '${process.env.DB_USER}'`);
+console.log(`DB_PASSWORD LENGTH: ${process.env.DB_PASSWORD ? process.env.DB_PASSWORD.length : 'UNDEFINED'}`);
+console.log("---------------------------------------------------------");
+// ===================================================================
+
 // Create a new Pool instance to manage connections to the database
 // The configuration is read from the .env file for security
 const pool = new Pool({
@@ -95,7 +104,8 @@ app.get('/business-units', async (req, res) => {
     // Send a 200 "OK" status and the array of business units
     res.status(200).json(result.rows);
 
-  } catch (error) {
+  } catch (error) { // <-- THE MISSING BRACE GOES HERE
+    // IMPORTANT: We are now logging the full error object to see more details
     console.error('Error executing query to fetch business units:', error);
     res.status(500).json({ error: 'An internal server error occurred.' });
   }
