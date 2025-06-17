@@ -41,7 +41,7 @@ app.get('/', (req, res) => {
 });
 
 /**
- * @route   POST /business-units
+ * @route   POST /api/business-units
  * @desc    Creates a new business unit (Group, Company, or Branch).
  * @access  Private (to be secured later)
  */
@@ -80,7 +80,7 @@ app.post('/api/business-units', async (req, res) => {
 
 
 /**
- * @route   GET /business-units
+ * @route   GET /api/business-units
  * @desc    Retrieves a list of all business units.
  * @access  Private (to be secured later)
  */
@@ -96,7 +96,6 @@ app.get('/api/business-units', async (req, res) => {
     res.status(200).json(result.rows);
 
   } catch (error) {
-    // IMPORTANT: We are now logging the full error object to see more details
     console.error('Error executing query to fetch business units:', error);
     res.status(500).json({ error: 'An internal server error occurred.' });
   }
