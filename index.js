@@ -104,7 +104,7 @@ app.get('/business-units', async (req, res) => {
     // Send a 200 "OK" status and the array of business units
     res.status(200).json(result.rows);
 
-  } catch (error) { // <-- THE MISSING BRACE GOES HERE
+  } catch (error) {
     // IMPORTANT: We are now logging the full error object to see more details
     console.error('Error executing query to fetch business units:', error);
     res.status(500).json({ error: 'An internal server error occurred.' });
