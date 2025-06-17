@@ -6,6 +6,8 @@ require('dotenv').config();
 // Import required libraries
 const express = require('express');
 const { Pool } = require('pg'); // PostgreSQL client
+const bcrypt = require('bcryptjs'); // For password hashing
+const jwt = require('jsonwebtoken'); // For JSON Web Tokens
 
 // --- Database Connection Setup ---
 
@@ -97,6 +99,111 @@ app.get('/api/business-units', async (req, res) => {
 
   } catch (error) {
     console.error('Error executing query to fetch business units:', error);
+    res.status(500).json({ error: 'An internal server error occurred.' });
+  }
+});
+
+/**
+ * @route   POST /api/users/register
+ * @desc    Registers a new user.
+ * @access  Public
+ */
+app.post('/api/users/register', async (req, res) => {
+  const { email, password } = req.body;
+
+  // Basic validation
+  if (!email || !password) {
+    return res.status(400).json({ error: 'Email and password are required.' });
+  }
+  if (password.length < 6) {
+    return res.status(400).json({ error: 'Password must be at least 6 characters long.' });
+  }
+
+  try {
+    // Check if user already exists
+    const userExistsQuery = 'SELECT * FROM users WHERE email = $1';
+    const existingUser = await pool.query(userExistsQuery, [email]);
+
+    if (existingUser.rows.length > 0) {
+      return res.status(400).json({ error: 'User with this email already exists.' });
+    }
+
+    // Hash the password
+    const salt = await bcrypt.genSalt(10); // Generate a salt
+    const passwordHash = await bcrypt.hash(password, salt); // Create the hash
+
+    // Store the new user in the database
+    const insertUserQuery = `
+      INSERT INTO users (email, password_hash) 
+      VALUES ($1, $2) 
+      RETURNING id, email, created_at;
+    `;
+    const newUser = await pool.query(insertUserQuery, [email, passwordHash]);
+
+    // Send back the new user's data (without the password hash!)
+    res.status(201).json(newUser.rows[0]);
+
+  } catch (error) {
+    console.error('Error during user registration:', error);
+    res.status(500).json({ error: 'An internal server error occurred.' });
+  }
+});
+
+/**
+ * @route   POST /api/users/login
+ * @desc    Authenticates a user and returns a JWT token.
+ * @access  Public
+ */
+app.post('/api/users/login', async (req, res) => {
+  const { email, password } = req.body;
+
+  // Basic validation
+  if (!email || !password) {
+    return res.status(400).json({ error: 'Email and password are required.' });
+  }
+
+  try {
+    // Find the user by their email
+    const userQuery = 'SELECT * FROM users WHERE email = $1';
+    const result = await pool.query(userQuery, [email]);
+    const user = result.rows[0];
+
+    // If no user is found, the credentials are bad
+    if (!user) {
+      return res.status(400).json({ error: 'Invalid credentials.' });
+    }
+
+    // Compare the provided password with the stored hash
+    const isMatch = await bcrypt.compare(password, user.password_hash);
+
+    // If passwords don't match, the credentials are bad
+    if (!isMatch) {
+      return res.status(400).json({ error: 'Invalid credentials.' });
+    }
+
+    // --- If credentials are correct, create and sign a JWT ---
+    
+    // The "payload" is the data we want to store inside the token
+    const payload = {
+      user: {
+        id: user.id // Store the user's ID in the token
+      }
+    };
+
+    // Sign the token with our secret key, and set it to expire in 1 hour
+    jwt.sign(
+      payload,
+      process.env.JWT_SECRET,
+      { expiresIn: '1h' }, // Token expires in 1 hour
+      (err, token) => {
+        if (err) throw err; // If signing fails, throw an error
+        // Send the token back to the user
+        res.json({ token });
+      }
+    );
+
+  } catch (error) {
+    console.error('Error during user login:', error);
     res.status(500).json({ error: 'An internal server error occurred.' });
   }
 });
